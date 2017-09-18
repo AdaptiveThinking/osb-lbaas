@@ -21,13 +21,13 @@ public class OutputSecret {
     public String getStatus() { return secret.getStatus(); }
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIMEZONE)
-    public Date getCreateTime() { return secret.getCreateTime(); }
+    public String getCreateTime() { return secret.getCreateTime(); }
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIMEZONE)
-    public Date getUpdateTime() { return secret.getUpdateTime(); }
+    public String getUpdateTime() { return secret.getUpdateTime(); }
 
     @JsonFormat(pattern = DATE_FORMAT, timezone = TIMEZONE)
-    public Date getExpiration() { return secret.getExpiration(); }
+    public String getExpiration() { return secret.getExpiration(); }
 
     public String getAlgorithm() { return secret.getAlgorithm(); }
 

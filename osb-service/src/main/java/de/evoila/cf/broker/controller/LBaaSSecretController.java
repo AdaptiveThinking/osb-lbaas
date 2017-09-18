@@ -26,7 +26,8 @@ public class LBaaSSecretController {
 
     public static final String SECRETS_BASE_PATH = "/v2/secrets";
 
-    @RequestMapping(value = "/secrets", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/secrets", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createSecret(@RequestBody BarbicanSecret secretBody) {
         log.debug("POST: " + SECRETS_BASE_PATH);
 
@@ -61,23 +62,6 @@ public class LBaaSSecretController {
         }
     }
 
-    @RequestMapping(value = "/secrets/{uuid}/payload", method = RequestMethod.GET,
-            produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> getPayload(@PathVariable("uuid") String uuid) {
-        log.debug("GET: " + SECRETS_BASE_PATH + "/{uuid}/payload, uuid = " + uuid);
-
-        String payload = OpenstackConnectionFactory.connection()
-                .barbican()
-                .secrets()
-                .getPayload(uuid);
-
-        if(!payload.isEmpty()) {
-            return new ResponseEntity<>(payload, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("{}", HttpStatus.NOT_FOUND);
-        }
-    }
-
     @RequestMapping(value = "/secrets/{uuid}", method = RequestMethod.DELETE)
     public ResponseEntity<String> deleteSecret(@PathVariable("uuid") String uuid) {
         log.debug("DELETE: " + SECRETS_BASE_PATH + "/{uuid}, uuid = " + uuid);
@@ -87,10 +71,6 @@ public class LBaaSSecretController {
                 .secrets()
                 .delete(uuid);
 
-        if (response.isSuccess()) {
-            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getCode()));
-        } else {
-            return new ResponseEntity<>("{}", HttpStatus.valueOf(response.getCode()));
-        }
+        return new ResponseEntity<>(HttpStatus.valueOf(response.getCode()));
     }
 }
