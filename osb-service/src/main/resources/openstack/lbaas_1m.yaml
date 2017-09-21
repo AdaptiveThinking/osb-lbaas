@@ -96,6 +96,9 @@ outputs:
   pool:
     value: { get_resource: pool }
 
+  loadbalancer:
+    value: { get_resource: loadbalancer }
+
   fip_address:
     description: Floating IP address of loadbalacer in public network
     value: { get_attr: [ floating_ip, floating_ip_address ] }

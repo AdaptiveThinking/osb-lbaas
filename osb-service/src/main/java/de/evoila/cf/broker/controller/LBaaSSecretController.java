@@ -1,19 +1,28 @@
 package de.evoila.cf.broker.controller;
 
 import de.evoila.cf.broker.bean.LbaaSBean;
-import de.evoila.cf.broker.model.OutputSecret;
+import de.evoila.cf.broker.model.CertificateData;
+import de.evoila.cf.cpi.openstack.fluent.HeatFluent;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
-import net.minidev.json.JSONObject;
+import org.openstack4j.api.Builders;
+import org.openstack4j.model.barbican.Container;
+import org.openstack4j.model.barbican.ContainerSecret;
 import org.openstack4j.model.barbican.Secret;
 import org.openstack4j.model.common.ActionResponse;
-import org.openstack4j.openstack.barbican.domain.BarbicanSecret;
+import org.openstack4j.model.heat.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.xml.ws.http.HTTPException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by reneschollmeyer, evoila on 06.09.17.
@@ -26,51 +35,140 @@ public class LBaaSSecretController {
 
     public static final String SECRETS_BASE_PATH = "/v2/secrets";
 
-    @RequestMapping(value = "/secrets", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> createSecret(@RequestBody BarbicanSecret secretBody) {
-        log.debug("POST: " + SECRETS_BASE_PATH);
+    public static final String CERTIFICATE_NAME_TEMPLATE = "certificate-%s";
+    public static final String PRIVATE_KEY_NAME_TEMPLATE = "private-key-%s";
+    public static final String CONTAINER_NAME_TEMPLATE = "container-%s";
 
-        Secret secret = OpenstackConnectionFactory.connection()
-                .barbican()
-                .secrets()
-                .create(secretBody);
+    @Autowired
+    private HeatFluent heatFluent;
 
-        if (secret != null) {
-            JSONObject secretRef = new JSONObject();
-            secretRef.put("secret_ref", secret.getSecretReference());
-            return new ResponseEntity<>(secretRef.toString(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("{}", HttpStatus.NOT_FOUND);
-        }
+    @PostMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> storeCertificate(@PathVariable("instanceId") String instanceId,
+                                                   @RequestBody CertificateData data) {
+
+        log.debug("Creating secret " + String.format(CERTIFICATE_NAME_TEMPLATE, instanceId));
+
+        Secret certificate = createSecret(Builders.secret()
+                .name(String.format(CERTIFICATE_NAME_TEMPLATE, instanceId))
+                .payload(data.getCertificate())
+                .payloadContentType(MediaType.TEXT_PLAIN_VALUE)
+                .build());
+
+        log.debug("Creating secret " + String.format(PRIVATE_KEY_NAME_TEMPLATE, instanceId));
+
+        Secret privateKey = createSecret(Builders.secret()
+                .name(String.format(PRIVATE_KEY_NAME_TEMPLATE, instanceId))
+                .payload(data.getPrivateKey())
+                .payloadContentType(MediaType.TEXT_PLAIN_VALUE)
+                .build());
+
+        List<ContainerSecret> secretReferences = new ArrayList<>();
+        secretReferences.add(Builders.containerSecret()
+                .name("certificate")
+                .reference(certificate.getSecretReference())
+                .build());
+        secretReferences.add(Builders.containerSecret()
+                .name("private_key")
+                .reference(privateKey.getSecretReference())
+                .build());
+
+        log.debug("Creating container " + String.format(CONTAINER_NAME_TEMPLATE, instanceId));
+
+        Container container = createContainer(Builders.container()
+                .name(String.format(CONTAINER_NAME_TEMPLATE, instanceId))
+                .secretReferences(secretReferences)
+                .type("certificate")
+                .build());
+
+        String listenerId = getListenerId(instanceId);
+
+        OpenstackConnectionFactory.connection().networking()
+                .lbaasV2().listener()
+                .update(listenerId, Builders.listenerV2Update()
+                .defaultTlsContainerRef(container.getContainerReference())
+                .build());
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/secrets/{uuid}", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OutputSecret> getSecret(@PathVariable("uuid") String uuid) {
-        log.debug("GET: " + SECRETS_BASE_PATH + "/{uuid}, uuid = " + uuid);
+    @PatchMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateCertificate(@PathVariable("instanceId") String instanceId,
+                                                    @RequestBody CertificateData data) {
 
-        Secret secret = OpenstackConnectionFactory.connection()
+        String listenerId = getListenerId(instanceId);
+
+        String containerId = getUUID(OpenstackConnectionFactory.connection()
+                .networking().lbaasV2().listener().get(listenerId).getDefaultTlsContainerRef());
+
+        Container container = OpenstackConnectionFactory.connection()
                 .barbican()
-                .secrets()
-                .get(uuid);
+                .containers()
+                .get(containerId);
 
-        if (secret != null) {
-            return new ResponseEntity<>(new OutputSecret(secret), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        for(ContainerSecret containerSecret : container.getSecretReferences()) {
+            log.debug("Deleting Secret " + containerSecret.getReference());
+
+            ActionResponse deleteResponse = deleteSecret(getUUID(containerSecret.getReference()));
+            if(deleteResponse.getCode() != HttpStatus.NO_CONTENT.value())
+                throw new HTTPException(deleteResponse.getCode());
         }
+
+        log.debug("Deleting Container " + container.getContainerReference());
+
+        ActionResponse deleteContainer = deleteContainer(containerId);
+
+        if(deleteContainer.getCode() != HttpStatus.NO_CONTENT.value())
+            throw new HTTPException(deleteContainer.getCode());
+
+        return storeCertificate(instanceId, data);
     }
 
-    @RequestMapping(value = "/secrets/{uuid}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> deleteSecret(@PathVariable("uuid") String uuid) {
-        log.debug("DELETE: " + SECRETS_BASE_PATH + "/{uuid}, uuid = " + uuid);
-
-        ActionResponse response = OpenstackConnectionFactory.connection()
+    private Secret createSecret(Secret secret) {
+        return OpenstackConnectionFactory.connection()
                 .barbican()
                 .secrets()
-                .delete(uuid);
+                .create(secret);
+    }
 
-        return new ResponseEntity<>(HttpStatus.valueOf(response.getCode()));
+    private Container createContainer(Container container) {
+        return OpenstackConnectionFactory.connection()
+                .barbican()
+                .containers()
+                .create(container);
+    }
+
+    private ActionResponse deleteSecret(String secretId) {
+        return OpenstackConnectionFactory.connection()
+                .barbican()
+                .secrets()
+                .delete(secretId);
+    }
+
+    private ActionResponse deleteContainer(String containerId) {
+        return OpenstackConnectionFactory.connection()
+                .barbican()
+                .containers()
+                .delete(containerId);
+    }
+
+    private String getListenerId(String instanceId) {
+        Stack lbaas = heatFluent.get("lbaas-" + instanceId);
+
+        return OpenstackConnectionFactory.connection().networking()
+                .lbaasV2().loadbalancer().get(getLoadbalancerId(lbaas.getOutputs()))
+                .getListeners().get(0).getId();
+    }
+
+    private String getLoadbalancerId(List<Map<String, Object>> outputs) {
+        for(Map<String, Object> map : outputs) {
+            if(map.get("output_key").equals("loadbalancer"))
+                return map.get("output_value").toString();
+        }
+
+        return null;
+    }
+
+    private String getUUID(String reference) {
+        return reference.substring(reference.lastIndexOf("/") + 1);
     }
 }
