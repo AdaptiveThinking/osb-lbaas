@@ -175,6 +175,15 @@ public class LBaaSSecretController {
         return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
     }
 
+    @GetMapping(value = "/manage/service_instances/{instanceId}/certs")
+    public ResponseEntity isCertified(@PathVariable("instanceId") String instanceId) {
+        if(stackMappingRepository.findOne(instanceId).getCerified()) {
+            return new ResponseEntity(HttpStatus.OK);
+        } else {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @ExceptionHandler(ServiceInstanceDoesNotExistException.class)
     @ResponseBody
     public ResponseEntity<ErrorMessage> handleException(ServiceInstanceDoesNotExistException ex) {

@@ -163,6 +163,21 @@ Content-Type: application/json
 | 201 | Successful Request |
 | 410 | Service Broker does not exist |
 
+## Check if loadbalancer already has a certificate
+
+### Request
+
+````
+GET /manage/service_instances/<instanceId>/certs
+````
+
+### Http Status Codes
+
+| Code | Description |
+|-------------|--------|
+| 200 | Loadbalancer already has a certificate |
+| 404 | Loadbalancer doesn't have a certificate yet |
+
 ## Delete Certifications
 
 Delete the certification and private key data for your LBaaS.
