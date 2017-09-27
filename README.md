@@ -54,6 +54,7 @@ Content-Type: application/json
 }
 ````
 
+---
 
 ## Deprovisioning
 
@@ -70,6 +71,8 @@ DELETE /v2/service_instances/<instance_id>?service_id=<service_id>&plan_id=<plan
 ````
 200 OK
 ````
+
+---
 
 ## Store Certifications
 
@@ -117,6 +120,7 @@ Content-Type: application/json
 | 400 | Loadbalancer already has a certificate |
 | 410 | Service Broker does not exist |
 
+---
 
 ## Update Certifications
 
@@ -162,6 +166,8 @@ Content-Type: application/json
 |-------------|--------|
 | 201 | Successful Request |
 | 410 | Service Broker does not exist |
+
+---
 
 ## Check if loadbalancer already has a certificate
 
