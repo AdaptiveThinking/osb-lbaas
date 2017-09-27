@@ -184,6 +184,8 @@ GET /manage/service_instances/<instanceId>/certs
 | 200 | Loadbalancer already has a certificate |
 | 404 | Loadbalancer doesn't have a certificate yet |
 
+---
+
 ## Delete Certifications
 
 Delete the certification and private key data for your LBaaS.
