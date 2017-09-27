@@ -1,6 +1,11 @@
 # Load Balancer as a Service
 Open Service Broker API (OSB) implementation for managing OpenStack Load-Balanacer-as-a-Service (LBaaS).
 
+## Key Features
+* Full stack-based deployment of Load Balancer
+* Configuration of Certificates
+* Replacement of Certificates
+
 # Usage
 
 ## Provisioning
@@ -74,7 +79,7 @@ DELETE /v2/service_instances/<instance_id>?service_id=<service_id>&plan_id=<plan
 
 ---
 
-## Store Certifications
+## Store Certificates
 
 Create two Secrets, one for a certificate and one for a private key, store their references into a container and save the container's reference in the loadbalancer.
 
@@ -122,9 +127,9 @@ Content-Type: application/json
 
 ---
 
-## Update Certifications
+## Update Certificates
 
-Update the certification and/or private key data for your LBaaS.
+Update the certificates and/or private key data for your LBaaS.
 
 ### Request
 
@@ -169,7 +174,7 @@ Content-Type: application/json
 
 ---
 
-## Check if loadbalancer already has a certificate
+## Check if Load Balancer already has a Certificate
 
 ### Request
 
@@ -186,9 +191,9 @@ GET /manage/service_instances/<instanceId>/certs
 
 ---
 
-## Delete Certifications
+## Delete Certificate
 
-Delete the certification and private key data for your LBaaS.
+Delete the certificate and private key data for your LBaaS.
 
 ### Request
 
