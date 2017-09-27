@@ -1,7 +1,12 @@
 package de.evoila.cf.broker.controller;
 
 import de.evoila.cf.broker.bean.LbaaSBean;
+import de.evoila.cf.broker.exception.CertificateAlreadyExistsException;
+import de.evoila.cf.broker.exception.ServiceInstanceDoesNotExistException;
 import de.evoila.cf.broker.model.CertificateData;
+import de.evoila.cf.broker.model.ErrorMessage;
+import de.evoila.cf.broker.persistence.mongodb.repository.ServiceStackMapping;
+import de.evoila.cf.broker.persistence.mongodb.repository.StackMappingRepository;
 import de.evoila.cf.cpi.openstack.fluent.HeatFluent;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
 import org.openstack4j.api.Builders;
@@ -42,9 +47,22 @@ public class LBaaSSecretController {
     @Autowired
     private HeatFluent heatFluent;
 
+    @Autowired
+    private StackMappingRepository stackMappingRepository;
+
     @PostMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> storeCertificate(@PathVariable("instanceId") String instanceId,
-                                                   @RequestBody CertificateData data) {
+                                                   @RequestBody CertificateData data) throws ServiceInstanceDoesNotExistException, CertificateAlreadyExistsException {
+
+        log.debug("POST: " + SECRETS_BASE_PATH + "/manage/service_instances/{instanceId}/certs," +
+                "storeCertificate(), serviceInstanceId = " + instanceId);
+
+        ServiceStackMapping stackMapping = stackMappingRepository.findOne(instanceId);
+
+        if(stackMapping.getCerified() == true)
+            throw new CertificateAlreadyExistsException(instanceId);
+
+        String listenerId = getListenerId(instanceId);
 
         log.debug("Creating secret " + String.format(CERTIFICATE_NAME_TEMPLATE, instanceId));
 
@@ -80,47 +98,84 @@ public class LBaaSSecretController {
                 .type("certificate")
                 .build());
 
-        String listenerId = getListenerId(instanceId);
-
         OpenstackConnectionFactory.connection().networking()
                 .lbaasV2().listener()
                 .update(listenerId, Builders.listenerV2Update()
                 .defaultTlsContainerRef(container.getContainerReference())
                 .build());
 
+        stackMapping.setCertified(true);
+        stackMappingRepository.save(stackMapping);
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PatchMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> updateCertificate(@PathVariable("instanceId") String instanceId,
-                                                    @RequestBody CertificateData data) {
+                                                    @RequestBody CertificateData data) throws ServiceInstanceDoesNotExistException, CertificateAlreadyExistsException {
+
+        log.debug("PATCH: " + SECRETS_BASE_PATH + "/manage/service_instances/{instanceId}/certs," +
+                "updateCertificate(), serviceInstanceId = " + instanceId);
+
+        deleteCertificate(instanceId);
+
+        return storeCertificate(instanceId, data);
+    }
+
+    @DeleteMapping(value = "/manage/service_instances/{instanceId}/certs")
+    public ResponseEntity<String> deleteCertificate(@PathVariable("instanceId") String instanceId) throws ServiceInstanceDoesNotExistException {
+
+        log.debug("DELETE: " + SECRETS_BASE_PATH + "/manage/service_instances/{instanceId}/certs," +
+                "deleteCertificate(), serviceInstanceId = " + instanceId);
+
+        ServiceStackMapping stackMapping = stackMappingRepository.findOne(instanceId);
 
         String listenerId = getListenerId(instanceId);
 
-        String containerId = getUUID(OpenstackConnectionFactory.connection()
-                .networking().lbaasV2().listener().get(listenerId).getDefaultTlsContainerRef());
+        if(listenerId != null) {
 
-        Container container = OpenstackConnectionFactory.connection()
-                .barbican()
-                .containers()
-                .get(containerId);
+            String containerReference = OpenstackConnectionFactory.connection()
+                    .networking().lbaasV2().listener().get(listenerId).getDefaultTlsContainerRef();
 
-        for(ContainerSecret containerSecret : container.getSecretReferences()) {
-            log.debug("Deleting Secret " + containerSecret.getReference());
+            if (containerReference != null) {
+                String containerId = getUUID(containerReference);
 
-            ActionResponse deleteResponse = deleteSecret(getUUID(containerSecret.getReference()));
-            if(deleteResponse.getCode() != HttpStatus.NO_CONTENT.value())
-                throw new HTTPException(deleteResponse.getCode());
+                OpenstackConnectionFactory.connection()
+                        .networking().lbaasV2().listener().update(listenerId, Builders.listenerV2Update()
+                        .defaultTlsContainerRef("")
+                        .build());
+
+                Container container = OpenstackConnectionFactory.connection()
+                        .barbican()
+                        .containers()
+                        .get(containerId);
+
+                for (ContainerSecret containerSecret : container.getSecretReferences()) {
+                    log.debug("Deleting Secret " + containerSecret.getReference());
+
+                    ActionResponse deleteResponse = deleteSecret(getUUID(containerSecret.getReference()));
+                    if (deleteResponse.getCode() != HttpStatus.NO_CONTENT.value())
+                        throw new HTTPException(deleteResponse.getCode());
+                }
+
+                log.debug("Deleting Container " + container.getContainerReference());
+
+                ActionResponse deleteContainer = deleteContainer(containerId);
+
+                stackMapping.setCertified(false);
+                stackMappingRepository.save(stackMapping);
+
+                return new ResponseEntity<>("{}", HttpStatus.valueOf(deleteContainer.getCode()));
+            }
         }
 
-        log.debug("Deleting Container " + container.getContainerReference());
+        return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
+    }
 
-        ActionResponse deleteContainer = deleteContainer(containerId);
-
-        if(deleteContainer.getCode() != HttpStatus.NO_CONTENT.value())
-            throw new HTTPException(deleteContainer.getCode());
-
-        return storeCertificate(instanceId, data);
+    @ExceptionHandler({ServiceInstanceDoesNotExistException.class, CertificateAlreadyExistsException.class})
+    @ResponseBody
+    public ResponseEntity<ErrorMessage> handleException(Exception ex) {
+        return new ResponseEntity<ErrorMessage>(new ErrorMessage(ex.getMessage()), HttpStatus.GONE);
     }
 
     private Secret createSecret(Secret secret) {
@@ -151,8 +206,12 @@ public class LBaaSSecretController {
                 .delete(containerId);
     }
 
-    private String getListenerId(String instanceId) {
+    private String getListenerId(String instanceId) throws ServiceInstanceDoesNotExistException {
         Stack lbaas = heatFluent.get("lbaas-" + instanceId);
+
+        if(lbaas == null) {
+            return null;
+        }
 
         return OpenstackConnectionFactory.connection().networking()
                 .lbaasV2().loadbalancer().get(getLoadbalancerId(lbaas.getOutputs()))

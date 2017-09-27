@@ -2,7 +2,9 @@ package de.evoila.cf.cpi.custom.props;
 
 import de.evoila.cf.broker.bean.LbaaSBean;
 import de.evoila.cf.broker.bean.OpenstackBean;
+import de.evoila.cf.broker.controller.LBaaSSecretController;
 import de.evoila.cf.broker.exception.PlatformException;
+import de.evoila.cf.broker.exception.ServiceInstanceDoesNotExistException;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceInstanceRepository;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceStackMapping;
 import de.evoila.cf.broker.persistence.mongodb.repository.StackMappingRepository;
@@ -49,6 +51,9 @@ public class LbaasCustomStackHandler extends CustomStackHandler {
     @Autowired
     private LbaaSBean lbaasBean;
 
+    @Autowired
+    private LBaaSSecretController lBaaSSecretController;
+
     @PostConstruct
     public void initValues() {
         subnet = openstackBean.getSubnetId();
@@ -61,6 +66,7 @@ public class LbaasCustomStackHandler extends CustomStackHandler {
     public String create(String instanceId, Map<String, String> customParameters) throws PlatformException {
         ServiceStackMapping stackMapping = new ServiceStackMapping();
         stackMapping.setId(instanceId);
+        stackMapping.setCertified(false);
 
         log.debug(customParameters.toString());
         log.debug("Start creating LBaaS...");
@@ -94,6 +100,12 @@ public class LbaasCustomStackHandler extends CustomStackHandler {
 
     @Override
     public void delete(String internalId) {
+        try {
+            lBaaSSecretController.deleteCertificate(internalId);
+        } catch (ServiceInstanceDoesNotExistException e) {
+            log.error(e.getMessage());
+        }
+
         ServiceStackMapping stackMapping = stackMappingRepo.findOne(internalId);
 
         if(stackMapping == null) {

@@ -8,6 +8,7 @@ import de.evoila.cf.broker.model.BaseEntity;
 public class ServiceStackMapping implements BaseEntity<String>{
     private String id;
     private String lbaasStack;
+    private boolean certified;
 
     @Override
     public String getId() { return id; }
@@ -17,4 +18,8 @@ public class ServiceStackMapping implements BaseEntity<String>{
     public String getLbaasStack() { return lbaasStack; }
 
     public void setLbaasStack(String lbaasStack) { this.lbaasStack = lbaasStack; }
+
+    public boolean getCerified() { return certified; }
+
+    public void setCertified(boolean certified) { this.certified = certified; }
 }
