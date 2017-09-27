@@ -109,6 +109,15 @@ Content-Type: application/json
 201 Created
 ````
 
+### Http Status Codes
+
+| Code | Description |
+|-------------|--------|
+| 201 | Successful Request |
+| 400 | Loadbalancer already has a certificate |
+| 410 | Service Broker does not exist |
+
+
 ## Update Certifications
 
 Update the certification and/or private key data for your LBaaS.
@@ -146,6 +155,36 @@ Content-Type: application/json
 ````
 201 Created
 ````
+
+### Http Status Codes
+
+| Code | Description |
+|-------------|--------|
+| 201 | Successful Request |
+| 410 | Service Broker does not exist |
+
+## Delete Certifications
+
+Delete the certification and private key data for your LBaaS.
+
+### Request
+
+````
+DELETE /manage/service_instances/<instanceId>/certs
+````
+
+### Response
+
+````
+204 No Content
+````
+
+### Http Status Codes
+
+| Code | Description |
+|-------------|--------|
+| 204 | Successful Request |
+| 410 | Service Broker does not exist |
 
 
 
