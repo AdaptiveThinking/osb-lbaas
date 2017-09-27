@@ -59,6 +59,9 @@ public class LBaaSSecretController {
 
         ServiceStackMapping stackMapping = stackMappingRepository.findOne(instanceId);
 
+        if(stackMapping == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+
         if(stackMapping.getCerified() == true)
             throw new CertificateAlreadyExistsException(instanceId);
 
@@ -172,10 +175,16 @@ public class LBaaSSecretController {
         return new ResponseEntity<>("{}", HttpStatus.NO_CONTENT);
     }
 
-    @ExceptionHandler({ServiceInstanceDoesNotExistException.class, CertificateAlreadyExistsException.class})
+    @ExceptionHandler(ServiceInstanceDoesNotExistException.class)
     @ResponseBody
-    public ResponseEntity<ErrorMessage> handleException(Exception ex) {
+    public ResponseEntity<ErrorMessage> handleException(ServiceInstanceDoesNotExistException ex) {
         return new ResponseEntity<ErrorMessage>(new ErrorMessage(ex.getMessage()), HttpStatus.GONE);
+    }
+
+    @ExceptionHandler(CertificateAlreadyExistsException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorMessage> handleException(CertificateAlreadyExistsException ex) {
+        return new ResponseEntity<ErrorMessage>(new ErrorMessage(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     private Secret createSecret(Secret secret) {
