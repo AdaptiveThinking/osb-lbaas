@@ -9,9 +9,9 @@
         <version>1.2.0</version>
         <relativePath>../osb-core/custom-parent</relativePath>
     </parent>
-    <artifactId>cf-service-broker-example</artifactId>
+    <artifactId>cf-service-broker-lbaas</artifactId>
     <packaging>jar</packaging>
-    <name>cf-service-broker-example</name>
+    <name>ssb-lbaas</name>
     <version>1.2.0</version>
 
 
