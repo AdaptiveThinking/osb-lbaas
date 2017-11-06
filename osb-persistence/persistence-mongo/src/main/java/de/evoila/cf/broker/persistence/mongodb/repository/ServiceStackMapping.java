@@ -19,7 +19,7 @@ public class ServiceStackMapping implements BaseEntity<String>{
 
     public void setLbaasStack(String lbaasStack) { this.lbaasStack = lbaasStack; }
 
-    public boolean getCerified() { return certified; }
+    public boolean getCertified() { return certified; }
 
     public void setCertified(boolean certified) { this.certified = certified; }
 }

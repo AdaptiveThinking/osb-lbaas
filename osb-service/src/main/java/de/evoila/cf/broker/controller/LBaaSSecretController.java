@@ -62,7 +62,7 @@ public class LBaaSSecretController {
         if(stackMapping == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
 
-        if(stackMapping.getCerified() == true)
+        if(stackMapping.getCertified() == true)
             throw new CertificateAlreadyExistsException(instanceId);
 
         String listenerId = getListenerId(instanceId);
@@ -177,7 +177,7 @@ public class LBaaSSecretController {
 
     @GetMapping(value = "/manage/service_instances/{instanceId}/certs")
     public ResponseEntity isCertified(@PathVariable("instanceId") String instanceId) {
-        if(stackMappingRepository.findOne(instanceId).getCerified()) {
+        if(stackMappingRepository.findOne(instanceId).getCertified()) {
             return new ResponseEntity(HttpStatus.OK);
         } else {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
