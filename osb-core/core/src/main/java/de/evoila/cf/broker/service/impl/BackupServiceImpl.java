@@ -106,7 +106,7 @@ public class BackupServiceImpl implements BackupService {
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUriString(config.getUri() + path);
 
-        builder.queryParam ("page", pageable.getPageNumber());
+        builder.queryParam("page", pageable.getPageNumber());
         builder.queryParam("page_size", pageable.getPageSize());
         if (pageable.getSort() != null) {
             Iterator<Sort.Order> sortIterator = pageable.getSort().iterator();
