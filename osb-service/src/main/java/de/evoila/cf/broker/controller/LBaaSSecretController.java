@@ -176,11 +176,11 @@ public class LBaaSSecretController {
     }
 
     @GetMapping(value = "/manage/service_instances/{instanceId}/certs")
-    public ResponseEntity isCertified(@PathVariable("instanceId") String instanceId) {
+    public ResponseEntity<Boolean> isCertified(@PathVariable("instanceId") String instanceId) {
         if(stackMappingRepository.findOne(instanceId).getCertified()) {
-            return new ResponseEntity(HttpStatus.OK);
+            return new ResponseEntity(true, HttpStatus.OK);
         } else {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
     }
 
