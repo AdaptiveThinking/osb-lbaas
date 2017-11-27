@@ -18,11 +18,11 @@ import org.springframework.cloud.config.java.AbstractCloudConfig;
 /**
  * Created by reneschollmeyer on 09.08.17.
  */
-@Configuration
+//@Configuration
 class RabbitOnConditionalConfiguration{
 
-      @Configuration
-      @Profile({"default", "local"})
+      //@Configuration
+      //@Profile({"default", "local"})
       @ConditionalOnBean(RabbitMQCredentials.class)
       static class Default {
 

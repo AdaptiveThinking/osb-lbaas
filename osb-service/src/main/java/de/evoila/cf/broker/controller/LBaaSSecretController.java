@@ -184,6 +184,24 @@ public class LBaaSSecretController {
         }
     }
 
+    @GetMapping(value = "/manage/service_instances/{instanceId}/fip", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> publicIp(@PathVariable("instanceId") String instanceId) throws ServiceInstanceDoesNotExistException {
+        ServiceStackMapping stackMapping = stackMappingRepository.findOne(instanceId);
+
+        if(stackMapping == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        Stack lbaas = heatFluent.get("lbaas-" + instanceId);
+
+        if(lbaas == null) {
+            return new ResponseEntity<String>("Loadbalancer not found", HttpStatus.BAD_REQUEST);
+        }
+
+        String publicIp = getPublicIp(lbaas.getOutputs());
+
+        return new ResponseEntity<String>("{ \"publicIp\" :" + "\"" + publicIp + "\" }", HttpStatus.OK);
+    }
+
     @ExceptionHandler(ServiceInstanceDoesNotExistException.class)
     @ResponseBody
     public ResponseEntity<ErrorMessage> handleException(ServiceInstanceDoesNotExistException ex) {
@@ -239,6 +257,15 @@ public class LBaaSSecretController {
     private String getLoadbalancerId(List<Map<String, Object>> outputs) {
         for(Map<String, Object> map : outputs) {
             if(map.get("output_key").equals("loadbalancer"))
+                return map.get("output_value").toString();
+        }
+
+        return null;
+    }
+
+    private String getPublicIp(List<Map<String, Object>> outputs) {
+        for(Map<String, Object> map : outputs) {
+            if(map.get("output_key").equals("fip_address"))
                 return map.get("output_value").toString();
         }
 
