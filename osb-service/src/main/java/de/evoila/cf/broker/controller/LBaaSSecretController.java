@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.xml.ws.http.HTTPException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -183,26 +182,6 @@ public class LBaaSSecretController {
         } else {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
-    }
-
-    @GetMapping(value = "/manage/service_instances/{instanceId}/fip")
-    public ResponseEntity<Map> publicIp(@PathVariable("instanceId") String instanceId) throws ServiceInstanceDoesNotExistException {
-        ServiceStackMapping stackMapping = stackMappingRepository.findOne(instanceId);
-
-        if(stackMapping == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        Stack lbaas = heatFluent.get("lbaas-" + instanceId);
-
-        if(lbaas == null) {
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-        }
-
-        String publicIp = getPublicIp(lbaas.getOutputs());
-        Map<String, String> response = new HashMap<>();
-
-        response.put("publicIp", publicIp);
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @ExceptionHandler(ServiceInstanceDoesNotExistException.class)

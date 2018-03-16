@@ -11,7 +11,7 @@
     </parent>
     <artifactId>cf-service-broker-lbaas</artifactId>
     <packaging>jar</packaging>
-    <name>ssb-lbaas</name>
+    <name>cf-service-broker-lbaas</name>
     <version>1.2.0</version>
 
 
@@ -50,4 +50,13 @@
             <version>${persistence.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

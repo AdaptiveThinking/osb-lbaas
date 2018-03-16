@@ -1,6 +1,7 @@
 package de.evoila.cf.cpi.bosh;
 
 import de.evoila.cf.broker.bean.BoshProperties;
+import de.evoila.cf.broker.bean.OpenstackBean;
 import de.evoila.cf.broker.exception.PlatformException;
 import de.evoila.cf.broker.model.DashboardClient;
 import de.evoila.cf.broker.model.Plan;
@@ -24,12 +25,12 @@ import java.util.Optional;
  * Created by reneschollmeyer, evoila on 12.03.18.
  */
 @Service
-@ConditionalOnBean(BoshProperties.class)
+@ConditionalOnBean({ BoshProperties.class, OpenstackBean.class })
 public class LbaaSBoshPlatformService extends BoshPlatformService {
     private static final int defaultPort = 80;
 
-    public LbaaSBoshPlatformService(PlatformRepository repository, CatalogService catalogService, ServicePortAvailabilityVerifier availabilityVerifier, BoshProperties boshProperties, Optional<DashboardClient> dashboardClient) {
-        super(repository, catalogService, availabilityVerifier, boshProperties, dashboardClient, new LbaaSDeploymentManager(boshProperties));
+    public LbaaSBoshPlatformService(PlatformRepository repository, CatalogService catalogService, ServicePortAvailabilityVerifier availabilityVerifier, BoshProperties boshProperties, Optional<DashboardClient> dashboardClient, OpenstackBean openstackBean) {
+        super(repository, catalogService, availabilityVerifier, boshProperties, dashboardClient, new LbaaSDeploymentManager(boshProperties, openstackBean));
     }
 
     public void runCreateErrands(ServiceInstance instance, Plan plan, Deployment deployment, Observable<List<ErrandSummary>> errands) throws PlatformException {  }
@@ -40,12 +41,6 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
 
     @Override
     protected void updateHosts(ServiceInstance instance, Plan plan, Deployment deployment) {
-        final int port;
-        if(plan.getMetadata().containsKey(LbaaSDeploymentManager.PORT)) {
-            port = (int) plan.getMetadata().get(LbaaSDeploymentManager.PORT);
-        } else {
-            port = defaultPort;
-        }
 
         List<Vm> vms = connection.connection().vms().listDetails(BoshPlatformService.DEPLOYMENT_NAME_PREFIX + instance.getId()).toBlocking().first();
         if(instance.getHosts() == null) {
@@ -54,6 +49,6 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
 
         instance.getHosts().clear();
 
-        vms.forEach(vm -> instance.getHosts().add(new ServerAddress("Host-" + vm.getIndex(), vm.getIps().get(0), port)));
+        vms.forEach(vm -> instance.getHosts().add(new ServerAddress("Host-" + vm.getIndex(), vm.getIps().get(0), defaultPort)));
     }
 }
