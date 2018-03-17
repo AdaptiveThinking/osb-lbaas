@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class LbaaSDeploymentManager extends DeploymentManager {
 
     protected static final String INSTANCE_GROUP = "haproxy";
+    protected static final String HA_PROXY_PROPERTIES = "ha_proxy";
     protected static final String DATA_PATH = "data_path";
     protected static final String PORT = "port";
     private static final String LETSENCRYPT = "letsencrypt";
@@ -45,7 +46,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
                 .filter(i -> i.getName().equals(INSTANCE_GROUP))
                 .findAny().get().getProperties();
 
-        HashMap<String, Object> haproxy = (HashMap<String, Object>) manifestProperties.get(INSTANCE_GROUP);
+        HashMap<String, Object> haproxy = (HashMap<String, Object>) manifestProperties.get(HA_PROXY_PROPERTIES);
 
         if(plan.getMetadata() != null
                 && plan.getMetadata().getCustomParameters() != null

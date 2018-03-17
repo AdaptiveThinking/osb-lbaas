@@ -53,7 +53,7 @@ instance_groups:
           user: root
           wday: '*'
   properties:
-    haproxy:
+    ha_proxy:
       binding_ip: 0.0.0.0
       stats_enable: true
       stats_user: admin
