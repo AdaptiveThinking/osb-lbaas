@@ -1,6 +1,7 @@
 package de.evoila.cf.broker.controller;
 
 import com.google.common.base.Splitter;
+import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.exception.PlatformException;
 import de.evoila.cf.broker.exception.ServiceBrokerException;
 import de.evoila.cf.broker.model.*;
@@ -24,6 +25,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by reneschollmeyer, evoila on 13.03.18.
@@ -31,6 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/v2/manage/service_instances")
 public class LetsEncryptController  {
+
     private final Logger log = LoggerFactory.getLogger(LetsEncryptController.class);
 
     private static String INSTANCE_GROUP = "haproxy";
@@ -46,6 +49,9 @@ public class LetsEncryptController  {
 
     @Autowired
     private DeploymentManager deploymentManager;
+
+    @Autowired
+    private BoshProperties boshProperties;
 
     @PostMapping(value = "/{instanceId}/dns", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity letsEncrypt(@PathVariable("instanceId") String instanceId,
@@ -75,7 +81,10 @@ public class LetsEncryptController  {
     public ResponseEntity<Map> publicIp(@PathVariable("instanceId") String instanceId) throws IOException {
         String publicIp = "";
 
-        Deployment deployment = lbaaSBoshPlatformService.getConnection().connection().deployments().get("sb-" + instanceId).toBlocking().first();
+        Deployment deployment = lbaaSBoshPlatformService.getConnection()
+                .connection()
+                .deployments()
+                .get("sb-" + instanceId).toBlocking().first();
 
         Manifest manifest = deploymentManager.getMapper().readValue(deployment.getRawManifest(), Manifest.class);
 
@@ -85,7 +94,7 @@ public class LetsEncryptController  {
                 .findAny().get().getNetworks();
 
         for(NetworkReference network : networks) {
-            if(network.getName().equals("floating")) {
+            if(network.getName().equals(boshProperties.getVipNetwork())) {
                 publicIp = network.getStaticIps().get(0);
             }
         }
@@ -95,8 +104,8 @@ public class LetsEncryptController  {
         }
 
         Map<String, String> response = new HashMap<>();
-
         response.put("publicIp", publicIp);
+
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -118,19 +127,13 @@ public class LetsEncryptController  {
 
         Map<String, Object> letsencrypt = new HashMap<>();
         letsencrypt.put("enabled", true);
-        letsencrypt.put("email", request.getEmail());
+        letsencrypt.put("email", request.getEmail().trim());
 
-        domainList.stream().forEach(String::trim);
+        domainList.stream()
+                .map(d -> d.trim())
+                .collect(Collectors.toList());
 
         letsencrypt.put("domains", domainList);
-
-        if(plan.getMetadata() == null) {
-            plan.setMetadata(new Metadata());
-        }
-
-        if(plan.getMetadata().getCustomParameters() == null) {
-            plan.getMetadata().setCustomParameters(new HashMap<>());
-        }
 
         plan.getMetadata().getCustomParameters().put("letsencrypt", letsencrypt);
 

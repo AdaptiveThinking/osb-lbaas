@@ -1,13 +1,12 @@
-	package de.evoila.cf.broker.service.sample;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
+	package de.evoila.cf.broker.service.custom;
 
 import de.evoila.cf.broker.model.Mode;
 import de.evoila.cf.broker.model.ServerAddress;
 import de.evoila.cf.broker.service.HAProxyService;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Johannes Hiemer.

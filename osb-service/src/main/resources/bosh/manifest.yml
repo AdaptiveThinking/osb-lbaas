@@ -22,13 +22,18 @@ stemcells:
   os: ubuntu-trusty
   version: latest
 
+# Commented properties for local development
 instance_groups:
 - name: haproxy
   instances: 1
   vm_type: default
   stemcell: default
+#  azs:
+#  - z1
   networks:
-  - name: default
+# - name: default
+  - name: service-1
+  - name: floating
   jobs:
   - name: haproxy
     release: osb-haproxy
