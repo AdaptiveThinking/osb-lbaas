@@ -78,11 +78,15 @@ public class LetsEncryptController  {
 
     @PostMapping(value = "/{instanceId}/submit", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity submit(@PathVariable("instanceId") String instanceId,
-                                 @RequestBody NsLookupRequest request) throws  ServiceBrokerException, IOException, PlatformException {
+                                 @RequestBody NsLookupRequest request) {
 
         List<String> domainList = Splitter.on(",").splitToList(request.getDomains().trim());
 
-        updateDeployment(instanceId, request, domainList);
+        try {
+            updateDeployment(instanceId, request, domainList);
+        } catch (ServiceBrokerException | IOException | PlatformException e) {
+            return new ResponseEntity<>("{ \"message\": " + e.getMessage() + " }", HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<>("{ \"message\": \"OK\"}", HttpStatus.OK);
     }
 
