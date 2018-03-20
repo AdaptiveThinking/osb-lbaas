@@ -53,11 +53,11 @@ public class LetsEncryptController  {
     @Autowired
     private BoshProperties boshProperties;
 
-    @PostMapping(value = "/{instanceId}/dns", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity letsEncrypt(@PathVariable("instanceId") String instanceId,
-                                      @RequestBody NsLookupRequest request) throws  ServiceBrokerException, IOException, PlatformException {
+    @PostMapping(value = "/{instanceId}/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
+        public ResponseEntity validate(@PathVariable("instanceId") String instanceId,
+                                       @RequestBody NsLookupRequest request) throws IOException {
 
-        List<String> domainList = Splitter.on(",").splitToList(request.getDomains());
+        List<String> domainList = Splitter.on(",").splitToList(request.getDomains().trim());
 
         NsLookupResponse response = new NsLookupResponse();
 
@@ -70,11 +70,20 @@ public class LetsEncryptController  {
         }
 
         if(response.getFalseResults().get("message").isEmpty()) {
-            updateDeployment(instanceId, request, domainList);
             return new ResponseEntity<>("{ \"message\": \"OK\"}", HttpStatus.OK);
         } else {
             return new ResponseEntity<>(response.getFalseResults(), HttpStatus.ACCEPTED);
         }
+    }
+
+    @PostMapping(value = "/{instanceId}/submit", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity submit(@PathVariable("instanceId") String instanceId,
+                                 @RequestBody NsLookupRequest request) throws  ServiceBrokerException, IOException, PlatformException {
+
+        List<String> domainList = Splitter.on(",").splitToList(request.getDomains().trim());
+
+        updateDeployment(instanceId, request, domainList);
+        return new ResponseEntity<>("{ \"message\": \"OK\"}", HttpStatus.OK);
     }
 
     @GetMapping(value = "/{instanceId}/fip")
