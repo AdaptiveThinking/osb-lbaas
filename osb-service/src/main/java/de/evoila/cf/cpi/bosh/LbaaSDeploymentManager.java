@@ -41,7 +41,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
         log.debug("Updating Deployment Manifest, replacing parameters");
 
-        Map<String, Object> manifestProperties = manifest.getInstance_groups()
+        Map<String, Object> manifestProperties = manifest.getInstanceGroups()
                 .stream()
                 .filter(i -> i.getName().equals(INSTANCE_GROUP))
                 .findAny().get().getProperties();
@@ -67,7 +67,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     }
 
     public void updateFloatingIp(Manifest manifest, ServiceInstance instance) {
-        manifest.getInstance_groups()
+        manifest.getInstanceGroups()
                 .stream()
                 .filter(i -> i.getName().equals(INSTANCE_GROUP))
                 .findFirst().get().getNetworks()

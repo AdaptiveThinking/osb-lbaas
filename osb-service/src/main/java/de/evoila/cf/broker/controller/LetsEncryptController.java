@@ -101,7 +101,7 @@ public class LetsEncryptController  {
 
         Manifest manifest = deploymentManager.getMapper().readValue(deployment.getRawManifest(), Manifest.class);
 
-        List<NetworkReference> networks = manifest.getInstance_groups()
+        List<NetworkReference> networks = manifest.getInstanceGroups()
                 .stream()
                 .filter(i -> i.getName().equals(INSTANCE_GROUP))
                 .findAny().get().getNetworks();
