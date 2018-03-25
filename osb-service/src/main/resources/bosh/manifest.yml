@@ -59,8 +59,7 @@ instance_groups:
       stats_user: admin
       stats_password: admin
       backend_servers:
-      - 10.0.8.12
-      - 10.0.16.11
+      - 10.0.8.13
       tcp:
       - name: ssh
         balance: roundrobin
@@ -68,5 +67,4 @@ instance_groups:
         backend_port: 2222
         check: "check"
         backend_servers:
-        - 10.0.8.13
-        - 10.0.16.12
+        - 10.0.8.14
