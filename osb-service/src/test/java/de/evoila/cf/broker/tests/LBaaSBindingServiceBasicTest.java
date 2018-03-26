@@ -30,7 +30,7 @@ import static org.junit.Assert.assertNotNull;
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("development")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class LBaaSBasicTest {
+public class LBaaSBindingServiceBasicTest {
     private static ServiceInstanceRequest serviceInstanceRequest;
     private static final String instanceId = "0b8eb32c-4ea7-4d1e-8b13-7a7fa3a02aa0";
 

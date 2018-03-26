@@ -16,13 +16,13 @@ import java.util.Map;
  *
  */
 @Service
-public class ExampleBindingService extends BindingServiceImpl {
+public class LbaaSBindingService extends BindingServiceImpl {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
 	@Override
-	protected Map<String, Object> createCredentials(String bindingId, ServiceInstance serviceInstance,
-			Plan plan, ServerAddress host) {
+	protected Map<String, Object> createCredentials(String bindingId, ServiceInstanceBindingRequest serviceInstanceBindingRequest,
+                                                    ServiceInstance serviceInstance, Plan plan, ServerAddress host) {
         throw new UnsupportedOperationException();
 	}
 
