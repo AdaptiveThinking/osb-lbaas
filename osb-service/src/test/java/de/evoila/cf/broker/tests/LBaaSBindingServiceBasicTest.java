@@ -63,14 +63,4 @@ public class LBaaSBindingServiceBasicTest {
         assertEquals(true, serviceInstanceRepository.containsServiceInstanceId(instanceId));
     }
 
-    @Test
-    public void deleteInstance() throws Exception {
-        ResponseEntity<String> responseEntity = serviceInstanceController.deleteServiceInstance(instanceId,
-                serviceInstanceRequest.getServiceDefinitionId(), serviceInstanceRequest.getPlanId());
-
-        Thread.sleep(5000);
-
-        assertNotNull(responseEntity);
-        assertEquals(false, serviceInstanceRepository.containsServiceInstanceId(instanceId));
-    }
 }
