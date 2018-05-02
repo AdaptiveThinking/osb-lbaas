@@ -28,11 +28,10 @@ instance_groups:
   instances: 1
   vm_type: default
   stemcell: default
-#  azs:
-#  - z1
+  azs:
+  - z1
   networks:
-# - name: default
-  - name: service-1
+  - name: service
   - name: floating
   jobs:
   - name: haproxy
