@@ -54,7 +54,7 @@ public class LetsEncryptController  {
     private BoshProperties boshProperties;
 
     @PostMapping(value = "/{instanceId}/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity validate(@PathVariable("instanceId") String instanceId,
+    public ResponseEntity validate(@PathVariable("instanceId") String instanceId,
                                        @RequestBody NsLookupRequest request) throws IOException {
 
         List<String> domainList = Splitter.on(",").splitToList(request.getDomains().trim());
@@ -84,7 +84,7 @@ public class LetsEncryptController  {
 
         try {
             updateDeployment(instanceId, request, domainList);
-        } catch (ServiceBrokerException | IOException | PlatformException e) {
+        } catch (ServiceBrokerException | PlatformException e) {
             return new ResponseEntity<>("{ \"message\": " + e.getMessage() + " }", HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>("{ \"message\": \"OK\"}", HttpStatus.OK);
@@ -134,7 +134,7 @@ public class LetsEncryptController  {
         return false;
     }
 
-    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws ServiceBrokerException, IOException, PlatformException {
+    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws ServiceBrokerException, PlatformException {
         ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 

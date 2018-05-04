@@ -57,6 +57,7 @@ instance_groups:
       stats_enable: true
       stats_user: admin
       stats_password: admin
+      backend_port: 80
       backend_servers:
       - 10.0.8.13
       tcp:
