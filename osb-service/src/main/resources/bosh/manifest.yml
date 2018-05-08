@@ -3,7 +3,7 @@
 name: haproxy-letsencrypt
 
 releases:
-- name: osb-haproxy
+- name: osb-bosh-haproxy
   version: latest
 - name: osb-monitoring
   version: latest
@@ -35,7 +35,7 @@ instance_groups:
   - name: floating
   jobs:
   - name: haproxy
-    release: osb-haproxy
+    release: osb-bosh-haproxy
   - name: haproxy_exporter
     release: osb-monitoring
   - name: cron
