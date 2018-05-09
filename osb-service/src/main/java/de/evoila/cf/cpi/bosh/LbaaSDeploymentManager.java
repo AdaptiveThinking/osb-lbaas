@@ -52,6 +52,10 @@ public class LbaaSDeploymentManager extends DeploymentManager {
                 && plan.getMetadata().getCustomParameters() != null
                 && plan.getMetadata().getCustomParameters().containsKey(LETSENCRYPT)) {
             haproxy.put(LETSENCRYPT, plan.getMetadata().getCustomParameters().get(LETSENCRYPT));
+
+            // This is important. Otherwise all customParameters will be reused in future
+            // deployments.
+            plan.getMetadata().getCustomParameters().remove(LETSENCRYPT);
         }
 
         if(properties.containsKey(DATA_PATH)) {
