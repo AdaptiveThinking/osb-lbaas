@@ -8,6 +8,7 @@ import de.evoila.cf.broker.model.*;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceInstanceRepository;
 import de.evoila.cf.broker.repository.ServiceDefinitionRepository;
 import de.evoila.cf.cpi.bosh.LbaaSBoshPlatformService;
+import de.evoila.cf.cpi.bosh.LbaaSDeploymentManager;
 import de.evoila.cf.cpi.bosh.deployment.DeploymentManager;
 import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import io.bosh.client.deployments.Deployment;
@@ -138,18 +139,17 @@ public class LetsEncryptController  {
         ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 
-        Map<String, Object> letsencrypt = new HashMap<>();
-        letsencrypt.put("enabled", true);
-        letsencrypt.put("email", request.getEmail().trim());
-
+        Map<String, Object> letsencryptProperties = new HashMap<>();
+        letsencryptProperties.put("enabled", true);
+        letsencryptProperties.put("email", request.getEmail().trim());
         domainList.stream()
                 .map(d -> d.trim())
                 .collect(Collectors.toList());
+        letsencryptProperties.put("domains", domainList);
 
-        letsencrypt.put("domains", domainList);
+        Map<String, Object> letsencrypt = new HashMap<>();
+        letsencrypt.put(LbaaSDeploymentManager.LETSENCRYPT, letsencryptProperties);
 
-        plan.getMetadata().getCustomParameters().put("letsencrypt", letsencrypt);
-
-        lbaaSBoshPlatformService.updateInstance(instance, plan);
+        lbaaSBoshPlatformService.updateInstance(instance, plan, letsencrypt);
     }
 }

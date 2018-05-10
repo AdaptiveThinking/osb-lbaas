@@ -24,7 +24,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     protected static final String HA_PROXY_PROPERTIES = "ha_proxy";
     protected static final String DATA_PATH = "data_path";
     protected static final String PORT = "port";
-    private static final String LETSENCRYPT = "letsencrypt";
+    public static final String LETSENCRYPT = "letsencrypt";
 
     private OpenstackBean openstackBean;
 
@@ -34,11 +34,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     }
 
     @Override
-    protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, String> customParameters) {
-        HashMap<String, Object> properties = new HashMap<>();
-        if (customParameters != null && !customParameters.isEmpty())
-            properties.putAll(customParameters);
-
+    protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, Object> customParameters) {
         log.debug("Updating Deployment Manifest, replacing parameters");
 
         Map<String, Object> manifestProperties = manifest.getInstanceGroups()
@@ -48,22 +44,16 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
         HashMap<String, Object> haproxy = (HashMap<String, Object>) manifestProperties.get(HA_PROXY_PROPERTIES);
 
-        if(plan.getMetadata() != null
-                && plan.getMetadata().getCustomParameters() != null
-                && plan.getMetadata().getCustomParameters().containsKey(LETSENCRYPT)) {
-            haproxy.put(LETSENCRYPT, plan.getMetadata().getCustomParameters().get(LETSENCRYPT));
-
-            // This is important. Otherwise all customParameters will be reused in future
-            // deployments.
-            plan.getMetadata().getCustomParameters().remove(LETSENCRYPT);
+        if(customParameters != null && customParameters.containsKey(LETSENCRYPT)) {
+            haproxy.put(LETSENCRYPT, customParameters.get(LETSENCRYPT));
         }
 
-        if(properties.containsKey(DATA_PATH)) {
-            haproxy.put(DATA_PATH, properties.get(DATA_PATH));
+        if(customParameters.containsKey(DATA_PATH)) {
+            haproxy.put(DATA_PATH, customParameters.get(DATA_PATH));
         }
 
-        if (properties.containsKey(PORT)) {
-            haproxy.put(PORT, properties.get(PORT));
+        if (customParameters.containsKey(PORT)) {
+            haproxy.put(PORT, customParameters.get(PORT));
         }
 
         updateInstanceGroupConfiguration(manifest, plan);
