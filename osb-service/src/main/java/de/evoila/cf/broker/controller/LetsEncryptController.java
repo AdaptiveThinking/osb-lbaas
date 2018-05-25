@@ -4,6 +4,7 @@ import com.google.common.base.Splitter;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.exception.PlatformException;
 import de.evoila.cf.broker.exception.ServiceBrokerException;
+import de.evoila.cf.broker.exception.ServiceDefinitionDoesNotExistException;
 import de.evoila.cf.broker.model.*;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceInstanceRepository;
 import de.evoila.cf.broker.repository.ServiceDefinitionRepository;
@@ -85,7 +86,7 @@ public class LetsEncryptController  {
 
         try {
             updateDeployment(instanceId, request, domainList);
-        } catch (ServiceBrokerException | PlatformException e) {
+        } catch (ServiceDefinitionDoesNotExistException | PlatformException e) {
             return new ResponseEntity<>("{ \"message\": " + e.getMessage() + " }", HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>("{ \"message\": \"OK\"}", HttpStatus.OK);
@@ -135,7 +136,7 @@ public class LetsEncryptController  {
         return false;
     }
 
-    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws ServiceBrokerException, PlatformException {
+    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws PlatformException, ServiceDefinitionDoesNotExistException  {
         ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 
