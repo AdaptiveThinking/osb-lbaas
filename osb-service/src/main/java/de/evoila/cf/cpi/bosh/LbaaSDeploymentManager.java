@@ -9,6 +9,7 @@ import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
 import org.openstack4j.model.compute.FloatingIP;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     protected static final String DATA_PATH = "data_path";
     protected static final String PORT = "port";
     public static final String LETSENCRYPT = "letsencrypt";
+    public static final String SSL_PEM = "ssl_pem";
 
     private OpenstackBean openstackBean;
 
@@ -44,8 +46,18 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
         HashMap<String, Object> haproxy = (HashMap<String, Object>) manifestProperties.get(HA_PROXY_PROPERTIES);
 
-        if(customParameters != null && customParameters.containsKey(LETSENCRYPT)) {
-            haproxy.put(LETSENCRYPT, customParameters.get(LETSENCRYPT));
+        if (customParameters != null) {
+            if(customParameters.containsKey(LETSENCRYPT)) {
+                haproxy.put(LETSENCRYPT, customParameters.get(LETSENCRYPT));
+
+                if (haproxy.containsKey(SSL_PEM))
+                    haproxy.remove(SSL_PEM);
+            } else if(customParameters.containsKey(SSL_PEM)) {
+                haproxy.put(SSL_PEM, customParameters.get(SSL_PEM));
+
+                if (haproxy.containsKey(LETSENCRYPT))
+                    haproxy.remove(LETSENCRYPT);
+            }
         }
 
         if(customParameters.containsKey(DATA_PATH)) {
@@ -61,6 +73,9 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     }
 
     public void updateFloatingIp(Manifest manifest, ServiceInstance instance) {
+        Assert.notNull(boshProperties.getVipNetwork(), "vip_network may not be null, when using LBaaS via Bosh");
+        Assert.notNull(openstackBean.getPool(), "OpenStack Public IP Pool may not be null, when using LBaaS via Bosh");
+
         manifest.getInstanceGroups()
                 .stream()
                 .filter(i -> i.getName().equals(INSTANCE_GROUP))

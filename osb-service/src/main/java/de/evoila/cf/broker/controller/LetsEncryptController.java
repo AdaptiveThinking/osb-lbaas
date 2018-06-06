@@ -136,7 +136,8 @@ public class LetsEncryptController  {
         return false;
     }
 
-    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws PlatformException, ServiceDefinitionDoesNotExistException  {
+    private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws PlatformException,
+            ServiceDefinitionDoesNotExistException  {
         ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 
