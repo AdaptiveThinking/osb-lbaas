@@ -2,17 +2,19 @@ package de.evoila.cf.cpi.bosh;
 
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
+import de.evoila.cf.broker.bean.SiteConfiguration;
 import de.evoila.cf.broker.model.Plan;
 import de.evoila.cf.broker.model.ServiceInstance;
+import de.evoila.cf.broker.util.MapUtils;
 import de.evoila.cf.cpi.bosh.deployment.DeploymentManager;
+import de.evoila.cf.cpi.bosh.deployment.manifest.InstanceGroup;
 import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
 import org.openstack4j.model.compute.FloatingIP;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,8 +32,13 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
     private OpenstackBean openstackBean;
 
-    public LbaaSDeploymentManager(BoshProperties boshProperties, OpenstackBean openstackBean) {
+    private SiteConfiguration siteConfiguration;
+
+    public LbaaSDeploymentManager(BoshProperties boshProperties,
+                                  SiteConfiguration siteConfiguration,
+                                  OpenstackBean openstackBean) {
         super(boshProperties);
+        this.siteConfiguration = siteConfiguration;
         this.openstackBean = openstackBean;
     }
 
@@ -39,40 +46,52 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, Object> customParameters) {
         log.debug("Updating Deployment Manifest, replacing parameters");
 
-        Map<String, Object> manifestProperties = manifest.getInstanceGroups()
-                .stream()
-                .filter(i -> i.getName().equals(INSTANCE_GROUP))
-                .findAny().get().getProperties();
-
-        HashMap<String, Object> haproxy = (HashMap<String, Object>) manifestProperties.get(HA_PROXY_PROPERTIES);
-
-        if (customParameters != null) {
-            if(customParameters.containsKey(LETSENCRYPT)) {
-                haproxy.put(LETSENCRYPT, customParameters.get(LETSENCRYPT));
-
-                if (haproxy.containsKey(SSL_PEM))
-                    haproxy.remove(SSL_PEM);
-            } else if(customParameters.containsKey(SSL_PEM)) {
-                haproxy.put(SSL_PEM, customParameters.get(SSL_PEM));
-
-                if (haproxy.containsKey(LETSENCRYPT))
-                    haproxy.remove(LETSENCRYPT);
-            }
-        }
-
-        if(customParameters.containsKey(DATA_PATH)) {
-            haproxy.put(DATA_PATH, customParameters.get(DATA_PATH));
-        }
-
-        if (customParameters.containsKey(PORT)) {
-            haproxy.put(PORT, customParameters.get(PORT));
-        }
-
         updateInstanceGroupConfiguration(manifest, plan);
+
+        InstanceGroup instanceGroup = this.getInstanceGroup(manifest, INSTANCE_GROUP);
+
+        if (instanceGroup != null) {
+            Map<String, Object> haproxyProperties = instanceGroup.getProperties();
+            HashMap<String, Object> haproxy = (HashMap<String, Object>) haproxyProperties.get(HA_PROXY_PROPERTIES);
+
+            if (customParameters != null) {
+                if(customParameters.containsKey(LETSENCRYPT)) {
+                    haproxy.put(LETSENCRYPT, customParameters.get(LETSENCRYPT));
+
+                    if (haproxy.containsKey(SSL_PEM))
+                        haproxy.remove(SSL_PEM);
+                } else if(customParameters.containsKey(SSL_PEM)) {
+                    haproxy.put(SSL_PEM, customParameters.get(SSL_PEM));
+
+                    if (haproxy.containsKey(LETSENCRYPT))
+                        haproxy.remove(LETSENCRYPT);
+                }
+            }
+
+            Map<String, Object> lbaasSiteConfiguration = this.getLbaaS(siteConfiguration);
+
+            haproxy.put("backend_servers", this.convertToList((LinkedHashMap<String, Object>) lbaasSiteConfiguration.get("backend_servers")));
+            List<Map<String, Object>> tcp = (List<Map<String, Object>>) haproxy.get("tcp");
+            tcp.get(0).put("backend_servers", this.convertToList((LinkedHashMap<String, Object>) lbaasSiteConfiguration.get("tcp_backend_servers")));
+
+            MapUtils.deepMerge(haproxyProperties, customParameters);
+        }
         updateFloatingIp(manifest, instance);
     }
 
-    public void updateFloatingIp(Manifest manifest, ServiceInstance instance) {
+    private Map<String, Object> getLbaaS(SiteConfiguration siteConfiguration) {
+        return (Map<String, Object>) siteConfiguration.getProperties().get("osb-lbaas");
+    }
+
+    private List<Object> convertToList(LinkedHashMap<String, Object> potentialList) {
+        List<Object> result = new ArrayList<>();
+        for (Object item : potentialList.values())
+            result.add(item);
+
+        return result;
+    }
+
+    private void updateFloatingIp(Manifest manifest, ServiceInstance instance) {
         Assert.notNull(boshProperties.getVipNetwork(), "vip_network may not be null, when using LBaaS via Bosh");
         Assert.notNull(openstackBean.getPool(), "OpenStack Public IP Pool may not be null, when using LBaaS via Bosh");
 

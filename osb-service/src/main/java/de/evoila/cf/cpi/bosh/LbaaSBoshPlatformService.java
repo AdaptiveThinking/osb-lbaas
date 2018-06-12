@@ -2,7 +2,7 @@ package de.evoila.cf.cpi.bosh;
 
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
-import de.evoila.cf.broker.exception.PlatformException;
+import de.evoila.cf.broker.bean.SiteConfiguration;
 import de.evoila.cf.broker.model.DashboardClient;
 import de.evoila.cf.broker.model.Plan;
 import de.evoila.cf.broker.model.ServerAddress;
@@ -31,13 +31,22 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
 
     private static final int defaultPort = 80;
 
-    public LbaaSBoshPlatformService(PlatformRepository repository, CatalogService catalogService, ServicePortAvailabilityVerifier availabilityVerifier, BoshProperties boshProperties, Optional<DashboardClient> dashboardClient, OpenstackBean openstackBean) {
-        super(repository, catalogService, availabilityVerifier, boshProperties, dashboardClient, new LbaaSDeploymentManager(boshProperties, openstackBean));
+    public LbaaSBoshPlatformService(PlatformRepository repository, CatalogService catalogService,
+                                    ServicePortAvailabilityVerifier availabilityVerifier,
+                                    BoshProperties boshProperties,
+                                    SiteConfiguration siteConfiguration,
+                                    Optional<DashboardClient> dashboardClient,
+                                    OpenstackBean openstackBean) {
+        super(repository, catalogService,
+                availabilityVerifier, boshProperties,
+                dashboardClient, new LbaaSDeploymentManager(boshProperties, siteConfiguration, openstackBean));
     }
 
-    public void runCreateErrands(ServiceInstance instance, Plan plan, Deployment deployment, Observable<List<ErrandSummary>> errands) throws PlatformException {}
+    public void runCreateErrands(ServiceInstance instance, Plan plan, Deployment deployment,
+                                 Observable<List<ErrandSummary>> errands) {}
 
-    protected void runUpdateErrands(ServiceInstance instance, Plan plan, Deployment deployment, Observable<List<ErrandSummary>> errands) throws PlatformException {}
+    protected void runUpdateErrands(ServiceInstance instance, Plan plan, Deployment deployment,
+                                    Observable<List<ErrandSummary>> errands) {}
 
     protected void runDeleteErrands(ServiceInstance instance, Deployment deployment, Observable<List<ErrandSummary>> errands) {}
 

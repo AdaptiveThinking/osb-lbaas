@@ -48,7 +48,7 @@ public class LBaaSSecretController {
     @Autowired
     private LbaaSBoshPlatformService lbaaSBoshPlatformService;
 
-    @PostMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> storeCertificate(@PathVariable("instanceId") String instanceId,
                                                    @RequestBody CertificateData data) {
 
