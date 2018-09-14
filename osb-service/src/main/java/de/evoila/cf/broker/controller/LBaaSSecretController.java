@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by reneschollmeyer, evoila on 06.09.17.
@@ -68,8 +69,8 @@ public class LBaaSSecretController {
 
     private void updateDeployment(String instanceId, CertificateData data) throws PlatformException,
             ServiceDefinitionDoesNotExistException {
-        ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
-        Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
+        Optional<ServiceInstance> instance = serviceInstanceRepository.findById(instanceId);
+        Plan plan = serviceDefinitionRepository.getPlan(instance.orElseGet(null).getPlanId());
 
         String certificates = data.getCertificate();
         certificates += "\n";
@@ -78,6 +79,6 @@ public class LBaaSSecretController {
         Map<String, Object> sslPem = new HashMap<>();
         sslPem.put(LbaaSDeploymentManager.SSL_PEM, certificates);
 
-        lbaaSBoshPlatformService.updateInstance(instance, plan, sslPem);
+        lbaaSBoshPlatformService.updateInstance(instance.orElseGet(null), plan, sslPem);
     }
 }

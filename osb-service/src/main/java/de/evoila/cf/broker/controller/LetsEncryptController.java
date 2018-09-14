@@ -25,6 +25,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -140,8 +141,8 @@ public class LetsEncryptController  {
 
     private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws PlatformException,
             ServiceDefinitionDoesNotExistException  {
-        ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
-        Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
+        Optional<ServiceInstance> instance = serviceInstanceRepository.findById(instanceId);
+        Plan plan = serviceDefinitionRepository.getPlan(instance.orElseGet(null).getPlanId());
 
         Map<String, Object> letsencryptProperties = new HashMap<>();
         letsencryptProperties.put("enabled", true);
@@ -154,6 +155,6 @@ public class LetsEncryptController  {
         Map<String, Object> letsencrypt = new HashMap<>();
         letsencrypt.put(LbaaSDeploymentManager.LETSENCRYPT, letsencryptProperties);
 
-        lbaaSBoshPlatformService.updateInstance(instance, plan, letsencrypt);
+        lbaaSBoshPlatformService.updateInstance(instance.orElseGet(null), plan, letsencrypt);
     }
 }
