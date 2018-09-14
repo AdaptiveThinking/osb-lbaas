@@ -11,6 +11,7 @@ import de.evoila.cf.cpi.bosh.deployment.manifest.InstanceGroup;
 import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
 import org.openstack4j.model.compute.FloatingIP;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -34,13 +35,12 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
     private SiteConfiguration siteConfiguration;
 
-    public LbaaSDeploymentManager(BoshProperties boshProperties,
-                                  SiteConfiguration siteConfiguration,
-                                  OpenstackBean openstackBean) {
-        super(boshProperties);
-        this.siteConfiguration = siteConfiguration;
+    public LbaaSDeploymentManager(BoshProperties properties, Environment environment, OpenstackBean openstackBean, SiteConfiguration siteConfiguration) {
+        super(properties, environment);
         this.openstackBean = openstackBean;
+        this.siteConfiguration = siteConfiguration;
     }
+
 
     @Override
     protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, Object> customParameters) {

@@ -3,7 +3,6 @@ package de.evoila.cf.broker.controller;
 import com.google.common.base.Splitter;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.exception.PlatformException;
-import de.evoila.cf.broker.exception.ServiceBrokerException;
 import de.evoila.cf.broker.exception.ServiceDefinitionDoesNotExistException;
 import de.evoila.cf.broker.model.*;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceInstanceRepository;
@@ -15,7 +14,6 @@ import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import io.bosh.client.deployments.Deployment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,20 +38,24 @@ public class LetsEncryptController  {
 
     private static String INSTANCE_GROUP = "haproxy";
 
-    @Autowired
     private LbaaSBoshPlatformService lbaaSBoshPlatformService;
 
-    @Autowired
     private ServiceInstanceRepository serviceInstanceRepository;
 
-    @Autowired
     private ServiceDefinitionRepository serviceDefinitionRepository;
 
-    @Autowired
     private DeploymentManager deploymentManager;
 
-    @Autowired
     private BoshProperties boshProperties;
+
+    public LetsEncryptController(LbaaSBoshPlatformService lbaaSBoshPlatformService, ServiceInstanceRepository serviceInstanceRepository, ServiceDefinitionRepository serviceDefinitionRepository,
+                                 DeploymentManager deploymentManager, BoshProperties boshProperties) {
+        this.lbaaSBoshPlatformService = lbaaSBoshPlatformService;
+        this.serviceInstanceRepository = serviceInstanceRepository;
+        this.serviceDefinitionRepository = serviceDefinitionRepository;
+        this.deploymentManager = deploymentManager;
+        this.boshProperties = boshProperties;
+    }
 
     @PostMapping(value = "/{instanceId}/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity validate(@PathVariable("instanceId") String instanceId,

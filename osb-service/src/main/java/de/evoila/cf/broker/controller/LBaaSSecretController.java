@@ -13,7 +13,6 @@ import de.evoila.cf.cpi.bosh.LbaaSDeploymentManager;
 import de.evoila.cf.cpi.bosh.deployment.DeploymentManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,20 +32,24 @@ public class LBaaSSecretController {
 
     public static final String SECRETS_BASE_PATH = "/v2/secrets";
 
-    @Autowired
     private ServiceInstanceRepository serviceInstanceRepository;
 
-    @Autowired
     private ServiceDefinitionRepository serviceDefinitionRepository;
 
-    @Autowired
     private DeploymentManager deploymentManager;
 
-    @Autowired
     private BoshProperties boshProperties;
 
-    @Autowired
     private LbaaSBoshPlatformService lbaaSBoshPlatformService;
+
+    public LBaaSSecretController(ServiceInstanceRepository serviceInstanceRepository, ServiceDefinitionRepository serviceDefinitionRepository,
+                                 DeploymentManager deploymentManager, BoshProperties boshProperties, LbaaSBoshPlatformService lbaaSBoshPlatformService) {
+        this.serviceInstanceRepository = serviceInstanceRepository;
+        this.serviceDefinitionRepository = serviceDefinitionRepository;
+        this.deploymentManager = deploymentManager;
+        this.boshProperties = boshProperties;
+        this.lbaaSBoshPlatformService = lbaaSBoshPlatformService;
+    }
 
     @PatchMapping(value = "/manage/service_instances/{instanceId}/certs", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> storeCertificate(@PathVariable("instanceId") String instanceId,
