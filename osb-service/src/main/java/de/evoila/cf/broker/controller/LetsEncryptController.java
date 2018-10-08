@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * Created by reneschollmeyer, evoila on 13.03.18.
  */
 @RestController
-@RequestMapping(value = "/v2/manage/service_instances")
+@RequestMapping(value = "/custom/v2/manage/service_instances")
 public class LetsEncryptController  {
 
     private final Logger log = LoggerFactory.getLogger(LetsEncryptController.class);
