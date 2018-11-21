@@ -39,20 +39,25 @@ public class LetsEncryptController  {
 
     private static String INSTANCE_GROUP = "haproxy";
 
-    @Autowired
     private LbaaSBoshPlatformService lbaaSBoshPlatformService;
 
-    @Autowired
     private ServiceInstanceRepository serviceInstanceRepository;
 
-    @Autowired
     private ServiceDefinitionRepository serviceDefinitionRepository;
 
-    @Autowired
     private DeploymentManager deploymentManager;
 
-    @Autowired
     private BoshProperties boshProperties;
+
+    public LetsEncryptController(LbaaSBoshPlatformService lbaaSBoshPlatformService, ServiceInstanceRepository serviceInstanceRepository,
+                                 ServiceDefinitionRepository serviceDefinitionRepository, DeploymentManager deploymentManager,
+                                 BoshProperties boshProperties) {
+        this.lbaaSBoshPlatformService = lbaaSBoshPlatformService;
+        this.serviceInstanceRepository = serviceInstanceRepository;
+        this.serviceDefinitionRepository = serviceDefinitionRepository;
+        this.deploymentManager = deploymentManager;
+        this.boshProperties = boshProperties;
+    }
 
     @PostMapping(value = "/{instanceId}/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity validate(@PathVariable("instanceId") String instanceId,
