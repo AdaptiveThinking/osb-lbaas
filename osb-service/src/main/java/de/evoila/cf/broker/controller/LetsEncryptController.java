@@ -3,7 +3,6 @@ package de.evoila.cf.broker.controller;
 import com.google.common.base.Splitter;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.exception.PlatformException;
-import de.evoila.cf.broker.exception.ServiceBrokerException;
 import de.evoila.cf.broker.exception.ServiceDefinitionDoesNotExistException;
 import de.evoila.cf.broker.model.*;
 import de.evoila.cf.broker.persistence.mongodb.repository.ServiceInstanceRepository;
@@ -138,7 +137,7 @@ public class LetsEncryptController  {
 
     private void updateDeployment(String instanceId, NsLookupRequest request, List<String> domainList) throws PlatformException,
             ServiceDefinitionDoesNotExistException  {
-        ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
+        ServiceInstance instance = serviceInstanceRepository.findById(instanceId).orElse(null);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 
         Map<String, Object> letsencryptProperties = new HashMap<>();

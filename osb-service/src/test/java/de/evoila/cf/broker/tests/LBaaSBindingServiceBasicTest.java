@@ -2,7 +2,7 @@ package de.evoila.cf.broker.tests;
 
 
 import de.evoila.Application;
-import de.evoila.cf.broker.controller.ServiceInstanceController;
+import de.evoila.cf.broker.controller.core.ServiceInstanceController;
 import de.evoila.cf.broker.model.ServiceInstanceRequest;
 import de.evoila.cf.broker.model.ServiceInstanceResponse;
 import de.evoila.cf.broker.repository.ServiceInstanceRepository;

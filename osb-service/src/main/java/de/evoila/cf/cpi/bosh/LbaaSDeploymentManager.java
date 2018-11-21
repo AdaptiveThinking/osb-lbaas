@@ -11,6 +11,7 @@ import de.evoila.cf.cpi.bosh.deployment.manifest.InstanceGroup;
 import de.evoila.cf.cpi.bosh.deployment.manifest.Manifest;
 import de.evoila.cf.cpi.openstack.fluent.connection.OpenstackConnectionFactory;
 import org.openstack4j.model.compute.FloatingIP;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -35,9 +36,10 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     private SiteConfiguration siteConfiguration;
 
     public LbaaSDeploymentManager(BoshProperties boshProperties,
+                                  Environment environment,
                                   SiteConfiguration siteConfiguration,
                                   OpenstackBean openstackBean) {
-        super(boshProperties);
+        super(boshProperties, environment);
         this.siteConfiguration = siteConfiguration;
         this.openstackBean = openstackBean;
     }
@@ -76,7 +78,9 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
             MapUtils.deepMerge(haproxyProperties, customParameters);
         }
-        updateFloatingIp(manifest, instance);
+
+        if (checkIfProfileActive(""))
+            updateFloatingIp(manifest, instance);
     }
 
     private Map<String, Object> getLbaaS(SiteConfiguration siteConfiguration) {

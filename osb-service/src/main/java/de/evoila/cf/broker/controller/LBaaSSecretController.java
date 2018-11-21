@@ -65,7 +65,7 @@ public class LBaaSSecretController {
 
     private void updateDeployment(String instanceId, CertificateData data) throws PlatformException,
             ServiceDefinitionDoesNotExistException {
-        ServiceInstance instance = serviceInstanceRepository.findOne(instanceId);
+        ServiceInstance instance = serviceInstanceRepository.findById(instanceId).orElse(null);
         Plan plan = serviceDefinitionRepository.getPlan(instance.getPlanId());
 
         String certificates = data.getCertificate();
