@@ -3,8 +3,8 @@ package de.evoila.cf.cpi.bosh;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
 import de.evoila.cf.broker.bean.SiteConfiguration;
-import de.evoila.cf.broker.model.Plan;
 import de.evoila.cf.broker.model.ServiceInstance;
+import de.evoila.cf.broker.model.catalog.plan.Plan;
 import de.evoila.cf.broker.util.MapUtils;
 import de.evoila.cf.cpi.bosh.deployment.DeploymentManager;
 import de.evoila.cf.cpi.bosh.deployment.manifest.InstanceGroup;
@@ -79,8 +79,7 @@ public class LbaaSDeploymentManager extends DeploymentManager {
             MapUtils.deepMerge(haproxyProperties, customParameters);
         }
 
-        if (checkIfProfileActive(""))
-            updateFloatingIp(manifest, instance);
+        updateFloatingIp(manifest, instance);
     }
 
     private Map<String, Object> getLbaaS(SiteConfiguration siteConfiguration) {

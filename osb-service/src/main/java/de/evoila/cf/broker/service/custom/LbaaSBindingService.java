@@ -3,7 +3,15 @@
  */
 package de.evoila.cf.broker.service.custom;
 
-import de.evoila.cf.broker.model.*;
+import de.evoila.cf.broker.model.RouteBinding;
+import de.evoila.cf.broker.model.ServiceInstance;
+import de.evoila.cf.broker.model.ServiceInstanceBinding;
+import de.evoila.cf.broker.model.ServiceInstanceBindingRequest;
+import de.evoila.cf.broker.model.catalog.ServerAddress;
+import de.evoila.cf.broker.model.catalog.plan.Plan;
+import de.evoila.cf.broker.repository.*;
+import de.evoila.cf.broker.service.AsyncBindingService;
+import de.evoila.cf.broker.service.HAProxyService;
 import de.evoila.cf.broker.service.impl.BindingServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +28,13 @@ public class LbaaSBindingService extends BindingServiceImpl {
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
-	@Override
-	public ServiceInstanceBinding getServiceInstanceBinding(String id) {
-		throw new UnsupportedOperationException();
-	}
+    public LbaaSBindingService(BindingRepository bindingRepository, ServiceDefinitionRepository serviceDefinitionRepository,
+                               ServiceInstanceRepository serviceInstanceRepository, RouteBindingRepository routeBindingRepository,
+                               HAProxyService haProxyService, JobRepository jobRepository,
+                               AsyncBindingService asyncBindingService, PlatformRepository platformRepository) {
+        super(bindingRepository, serviceDefinitionRepository, serviceInstanceRepository, routeBindingRepository,
+                haProxyService, jobRepository, asyncBindingService, platformRepository);
+    }
 
 	@Override
 	protected RouteBinding bindRoute(ServiceInstance serviceInstance, String route) {

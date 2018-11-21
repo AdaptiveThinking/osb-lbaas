@@ -2,7 +2,7 @@
 
 import de.evoila.cf.broker.bean.HAProxyConfiguration;
 import de.evoila.cf.broker.model.Mode;
-import de.evoila.cf.broker.model.ServerAddress;
+import de.evoila.cf.broker.model.catalog.ServerAddress;
 import de.evoila.cf.broker.service.HAProxyService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,6 @@ public class HAProxyServiceImpl extends HAProxyService {
 	
 	@Override
 	public List<String> getOptions(ServerAddress serverAddress) {
-		return new ArrayList<String>();
+		return new ArrayList<>();
 	}
 }

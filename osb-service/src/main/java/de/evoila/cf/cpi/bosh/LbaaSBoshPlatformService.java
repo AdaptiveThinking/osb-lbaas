@@ -4,9 +4,9 @@ import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
 import de.evoila.cf.broker.bean.SiteConfiguration;
 import de.evoila.cf.broker.model.DashboardClient;
-import de.evoila.cf.broker.model.Plan;
-import de.evoila.cf.broker.model.ServerAddress;
 import de.evoila.cf.broker.model.ServiceInstance;
+import de.evoila.cf.broker.model.catalog.ServerAddress;
+import de.evoila.cf.broker.model.catalog.plan.Plan;
 import de.evoila.cf.broker.repository.PlatformRepository;
 import de.evoila.cf.broker.service.CatalogService;
 import de.evoila.cf.broker.service.availability.ServicePortAvailabilityVerifier;
@@ -64,7 +64,7 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
         } else
             instance.getHosts().clear();
 
-        vms.forEach(vm -> instance.getHosts().add(new ServerAddress("Host-" + vm.getIndex(), vm.getIps().get(0), defaultPort)));
+        vms.forEach(vm -> instance.getHosts().add(new ServerAddress(vm.getJobName(), vm.getIps().get(0), defaultPort)));
     }
 
     @Override
