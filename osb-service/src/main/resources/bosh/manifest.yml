@@ -24,7 +24,7 @@ stemcells:
 
 # Commented properties for local development
 instance_groups:
-- name: haproxy
+- name: ha_proxy
   instances: 1
   vm_type: default
   stemcell: default
@@ -54,9 +54,10 @@ instance_groups:
   properties:
     ha_proxy:
       binding_ip: 0.0.0.0
-      stats_enable: true
-      stats_user: admin
-      stats_password: admin
+      stats:
+        enable: true
+        username: admin
+        password: admin
       backend_port: 80
       backend_servers:
       - 10.0.8.1

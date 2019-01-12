@@ -3,8 +3,8 @@ package de.evoila.cf.broker.tests;
 
 import de.evoila.Application;
 import de.evoila.cf.broker.controller.core.ServiceInstanceController;
+import de.evoila.cf.broker.model.ServiceInstanceOperationResponse;
 import de.evoila.cf.broker.model.ServiceInstanceRequest;
-import de.evoila.cf.broker.model.ServiceInstanceResponse;
 import de.evoila.cf.broker.repository.ServiceInstanceRepository;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -50,12 +50,12 @@ public class LBaaSBindingServiceBasicTest {
 
     @Test
     public void createInstance() throws Exception {
-        ResponseEntity<ServiceInstanceResponse> responseEntity = serviceInstanceController.createServiceInstance(instanceId,
+        ResponseEntity<ServiceInstanceOperationResponse> responseEntity = serviceInstanceController.create(instanceId,
                 true, serviceInstanceRequest);
 
         Thread.sleep(5000);
 
-        while(serviceInstanceController.lastOperation(instanceId).getBody().getState().equals("in progress")) {
+        while(serviceInstanceController.lastOperation(instanceId, null).getBody().getState().equals("in progress")) {
             Thread.sleep(5000);
         }
 
