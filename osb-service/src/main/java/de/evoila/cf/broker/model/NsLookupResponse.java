@@ -1,27 +1,24 @@
 package de.evoila.cf.broker.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Created by reneschollmeyer, evoila on 13.03.18.
+ * @author Rene Schollmeyer.
  */
 public class NsLookupResponse {
 
-    private Map<String, List<String>> falseResults;
+    private List<String> falseResults = new ArrayList<>();
 
-    public NsLookupResponse() {
-        falseResults = new HashMap<>();
-        falseResults.put("message", new ArrayList<>());
-    }
-
-    public Map<String, List<String>> getFalseResults() {
+    public List<String> getFalseResults() {
         return falseResults;
     }
 
-    public void setFalseResults(Map<String, List<String>> falseResults) {
+    public void setFalseResults(List<String> falseResults) {
         this.falseResults = falseResults;
+    }
+
+    public void addFalseResult(String result) {
+        this.falseResults.add(result);
     }
 }
