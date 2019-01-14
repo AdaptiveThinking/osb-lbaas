@@ -60,7 +60,8 @@ public class LbaaSDeploymentManager extends DeploymentManager {
             haproxy.remove(SSL_PEM);
             haproxy.remove(LETS_ENCRYPT);
 
-            MapUtils.deepMerge(haproxyProperties, customParameters);
+            if (customParameters != null && !customParameters.isEmpty())
+                MapUtils.deepMerge(haproxyProperties, customParameters);
 
             Map<String, Object> lbaasSiteConfiguration = this.getLbaaS(siteConfiguration);
             haproxy.put("backend_servers", this.convertToList((LinkedHashMap<String, Object>) lbaasSiteConfiguration.get("backend_servers")));
