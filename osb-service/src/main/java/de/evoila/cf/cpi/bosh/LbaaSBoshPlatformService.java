@@ -3,10 +3,9 @@ package de.evoila.cf.cpi.bosh;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
 import de.evoila.cf.broker.bean.SiteConfiguration;
+import de.evoila.cf.broker.bean.enums.IaasPlatform;
 import de.evoila.cf.broker.exception.PlatformException;
 import de.evoila.cf.broker.model.DashboardClient;
-import de.evoila.cf.broker.model.EnvironmentUtils;
-import de.evoila.cf.broker.model.GlobalConstants;
 import de.evoila.cf.broker.model.ServiceInstance;
 import de.evoila.cf.broker.model.catalog.plan.Plan;
 import de.evoila.cf.broker.repository.PlatformRepository;
@@ -35,6 +34,8 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
 
     private Environment environment;
 
+    private SiteConfiguration siteConfiguration;
+
     public LbaaSBoshPlatformService(PlatformRepository repository, CatalogService catalogService,
                                     ServicePortAvailabilityVerifier availabilityVerifier,
                                     BoshProperties boshProperties,
@@ -45,6 +46,7 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
         super(repository, catalogService,
                 availabilityVerifier, boshProperties,
                 dashboardClient, new LbaaSDeploymentManager(boshProperties, environment, siteConfiguration, openstackBean));
+        this.siteConfiguration = siteConfiguration;
         this.environment = environment;
     }
 
@@ -74,13 +76,16 @@ public class LbaaSBoshPlatformService extends BoshPlatformService {
     }
 
     private void deallocateFloatingIP(String floatingIpId) {
-        if (EnvironmentUtils.isEnvironment(GlobalConstants.OPENSTACK_PROFILE, this.environment)) {
+        if (siteConfiguration.getIaas() == null || siteConfiguration.getIaas().getPlatform() == null)
+            throw new RuntimeException("Cannot provide Floating IP without proper SiteConfiguration");
+
+        if (siteConfiguration.getIaas().getPlatform().equals(IaasPlatform.OPENSTACK)) {
             OpenstackConnectionFactory
                     .connection()
                     .compute()
                     .floatingIps()
                     .deallocateIP(floatingIpId);
-        } else if (EnvironmentUtils.isEnvironment(GlobalConstants.LOCAL_PROFILE, this.environment)) {
+        } else if (siteConfiguration.getIaas().getPlatform().equals(IaasPlatform.BOSH_LITE)) {
             log.info("Deallocation of Floating IP for profile 'local'. No need to do anything.");
         }
     }

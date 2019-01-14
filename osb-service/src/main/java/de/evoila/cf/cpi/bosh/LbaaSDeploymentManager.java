@@ -3,8 +3,7 @@ package de.evoila.cf.cpi.bosh;
 import de.evoila.cf.broker.bean.BoshProperties;
 import de.evoila.cf.broker.bean.OpenstackBean;
 import de.evoila.cf.broker.bean.SiteConfiguration;
-import de.evoila.cf.broker.model.EnvironmentUtils;
-import de.evoila.cf.broker.model.GlobalConstants;
+import de.evoila.cf.broker.bean.enums.IaasPlatform;
 import de.evoila.cf.broker.model.ServiceInstance;
 import de.evoila.cf.broker.model.catalog.plan.Plan;
 import de.evoila.cf.broker.util.MapUtils;
@@ -106,15 +105,18 @@ public class LbaaSDeploymentManager extends DeploymentManager {
 
     }
 
-    private String retrieveFloatingIp() {
-        if (EnvironmentUtils.isEnvironment(GlobalConstants.OPENSTACK_PROFILE, this.environment)) {
+    private String retrieveFloatingIp() throws RuntimeException {
+        if (siteConfiguration.getIaas() == null || siteConfiguration.getIaas().getPlatform() == null)
+            throw new RuntimeException("Cannot provide Floating IP without proper SiteConfiguration");
+
+        if (siteConfiguration.getIaas().getPlatform().equals(IaasPlatform.OPENSTACK)) {
             FloatingIP floatingIP = OpenstackConnectionFactory
                     .connection()
                     .compute()
                     .floatingIps().allocateIP(openstackBean.getPool());
             if (floatingIP != null)
                 return floatingIP.getFloatingIpAddress();
-        } else if (EnvironmentUtils.isEnvironment(GlobalConstants.LOCAL_PROFILE, this.environment)) {
+        } else if (siteConfiguration.getIaas().getPlatform().equals(IaasPlatform.BOSH_LITE)) {
             return "10.245.0.100";
         }
 
