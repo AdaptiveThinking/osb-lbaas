@@ -130,7 +130,7 @@ public class LBaasController {
             if (response.getFalseResults().isEmpty()) {
                 return new ResponseEntity<>(new ResponseMessage<>("All domains validated"), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(new ResponseMessage<>(response.getFalseResults()), HttpStatus.ACCEPTED);
+                return new ResponseEntity<>(new ResponseMessage<>(response.getFalseResults()), HttpStatus.BAD_REQUEST);
             }
         }
         return new ResponseEntity(HttpStatus.NOT_FOUND);
