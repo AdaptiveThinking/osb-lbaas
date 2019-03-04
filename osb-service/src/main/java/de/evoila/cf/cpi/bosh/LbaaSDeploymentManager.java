@@ -47,7 +47,8 @@ public class LbaaSDeploymentManager extends DeploymentManager {
     }
 
     @Override
-    protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, Object> customParameters) {
+    protected void replaceParameters(ServiceInstance instance, Manifest manifest, Plan plan, Map<String, Object> customParameters,
+                                     boolean isUpdate) {
         log.debug("Updating Deployment Manifest, replacing parameters");
 
         updateInstanceGroupConfiguration(manifest, plan);
