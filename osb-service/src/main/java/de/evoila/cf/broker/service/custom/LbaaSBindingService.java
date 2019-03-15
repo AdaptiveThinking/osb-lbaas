@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.evoila.cf.broker.service.custom;
 
 import de.evoila.cf.broker.model.RouteBinding;
@@ -21,7 +18,6 @@ import java.util.Map;
 
 /**
  * @author Johannes Hiemer.
- *
  */
 @Service
 public class LbaaSBindingService extends BindingServiceImpl {
